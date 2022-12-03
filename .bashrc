@@ -7,13 +7,13 @@ eval "$(starship init bash)"
 
 INSTDATE=`date '+%A %d-%B, %Y'`
 HOSTNAME=$(hostname)
-echo "Hola $HOSTNAME, hoy es $INSTDATE"
+echo "Hola $HOSTNAME - $INSTDATE"
 
 mcommit() { 
   BRANCH_NAME=`git rev-parse --abbrev-ref HEAD`
   read -p "Introduzca el mensaje: " MSG_INPUT
   MESSAGE="[$BRANCH_NAME] $MSG_INPUT"
-  git add . && git commit -a -m "$MESSAGE" && git push
+  git add . && git commit -a -m "$MESSAGE" && git push --set-upstream origin $BRANCH_NAME
   echo 
   read -p "Mergear a dev? (y/n) " -n 1 -r
   echo
@@ -23,8 +23,22 @@ mcommit() {
     echo "Se finalizó sin mergear a dev"
     [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
   else
-    git checkout dev2023 && git fetch && git merge origin/master && git merge origin/$BRANCH_NAME
+    git checkout dev2023
+    git fetch
+    git merge origin/master
+    git pull 
+    MERGE_RESULT=`git merge origin/$BRANCH_NAME`
     echo
     echo "Merge completado!"
+    echo
+  read -p "�CONFIRMAR QUE NO HAY CONFLICTOS ANTES!!!. Si no hay conflictos, pushear? (y/n) " -n 1 -r PUSH_CONFIRMATION
+  echo
+  if [[ ! $PUSH_CONFIRMATION =~ ^[Yy]$ ]]
+  then
+    echo
+    echo "Saliendo sin pushear..."
+    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+  else
+    git push
   fi
 }
