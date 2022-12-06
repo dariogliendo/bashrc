@@ -9,6 +9,22 @@ INSTDATE=`date '+%A %d-%B, %Y'`
 HOSTNAME=$(hostname)
 echo "Hola $HOSTNAME - $INSTDATE"
 
+cconf() {
+  RESULT=`git merge origin/master`
+
+  if [[ ! "$RESULT" =~ .*"CONFLICT".* ]];
+  then
+    echo
+    echo 'no hay conflicto'
+    echo
+  else
+    echo $RESULT
+    echo
+    echo 'si hay conflictos'
+    echo
+  fi
+}
+
 mcommit() { 
   BRANCH_NAME=`git rev-parse --abbrev-ref HEAD`
   read -p "Introduzca el mensaje: " MSG_INPUT
@@ -16,13 +32,14 @@ mcommit() {
   git add . && git commit -a -m "$MESSAGE" && git push --set-upstream origin $BRANCH_NAME
   echo 
   read -p "Mergear a dev? (y/n) " -n 1 -r
-  echo
-  if [[ ! $REPLY =~ ^[Yy]$ ]]
-  then 
+  if [[ ! $REPLY =~ ^[Yy]$ ]];
+  then
+    # Si NO desea mergear a dev
     echo
-    echo "Se finalizó sin mergear a dev"
+    echo "Se finalizo sin mergear a dev"
     [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
   else
+    # Si SI desea mergear a dev
     git checkout dev2023
     git fetch
     git merge origin/master
@@ -31,14 +48,37 @@ mcommit() {
     echo
     echo "Merge completado!"
     echo
-  read -p "�CONFIRMAR QUE NO HAY CONFLICTOS ANTES!!!. Si no hay conflictos, pushear? (y/n) " -n 1 -r PUSH_CONFIRMATION
-  echo
-  if [[ ! $PUSH_CONFIRMATION =~ ^[Yy]$ ]]
-  then
-    echo
-    echo "Saliendo sin pushear..."
-    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
-  else
-    git push
+    if [[ ! "$MERGE_RESULT" =~ .*"CONFLICT".* ]];
+    then
+      # Si NO hay conflictos
+      read -p 'Parece que no hay conflictos. Pushear a dev? (y/n) ' -n 1 -r FINAL_PUSH
+      if [[ ! $FINAL_PUSH =~ ^[Yy]$ ]];
+      then
+        # Si NO desea pushear
+        echo
+        echo 'Saliendo sin pushear'
+        [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+      else
+        # Si SI desea pushear
+        echo 'Listo!'
+        [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+      fi
+    else
+      # Si SI hay conflictos
+      read -p 'Hay conflictos. Desea abortar el merge? (y/n) ' -n 1 -r ABORT
+      if [[ ! $ABORT =~ ^[Yy]$ ]];
+      then
+        #Si NO desea abortar
+        echo
+        echo 'Resuolver conflictos antes de continuar'
+        [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+      else
+        #Si SI desea abortar
+        git merge --abort
+        echo
+        echo 'Se abortó el merge. Saliendo'
+        [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+      fi
+    fi
   fi
 }
