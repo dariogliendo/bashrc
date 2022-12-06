@@ -9,22 +9,6 @@ INSTDATE=`date '+%A %d-%B, %Y'`
 HOSTNAME=$(hostname)
 echo "Hola $HOSTNAME - $INSTDATE"
 
-cconf() {
-  RESULT=`git merge origin/master`
-
-  if [[ ! "$RESULT" =~ .*"CONFLICT".* ]];
-  then
-    echo
-    echo 'no hay conflicto'
-    echo
-  else
-    echo $RESULT
-    echo
-    echo 'si hay conflictos'
-    echo
-  fi
-}
-
 mcommit() { 
   BRANCH_NAME=`git rev-parse --abbrev-ref HEAD`
   read -p "Introduzca el mensaje: " MSG_INPUT
