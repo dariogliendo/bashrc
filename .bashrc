@@ -44,6 +44,7 @@ mcommit() {
         [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
       else
         # Si SI desea pushear
+        git push
         echo 'Listo!'
         [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
       fi
